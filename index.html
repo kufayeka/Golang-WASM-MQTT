@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wasm Go Example</title>
+    <script src="wasm_exec.js"></script>
+</head>
+<body>
+    <script>
+        if (WebAssembly) {
+            // WebAssembly.instantiateStreaming is not currently available in Safari
+            if (WebAssembly && !WebAssembly.instantiateStreaming) { // polyfill
+                WebAssembly.instantiateStreaming = async (resp, importObject) => {
+                    const source = await (await resp).arrayBuffer();
+                    return await WebAssembly.instantiate(source, importObject);
+                };
+            }
+
+            const go = new Go();
+            WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
+                go.run(result.instance);
+            });
+        } else {
+            console.log("WebAssembly is not supported in your browser")
+        }
+    </script>
+
+    <h1>Simple Wasm Example - Testing</h1>
+    <div>
+        <h2>Counter: <span id="counter">0</span></h2>
+        <button onclick="increment()">Increment</button>
+        <button onclick="decrement()">Decrement</button>
+    </div>
+    <div>
+        <h2>Current Time: <span id="clock"></span></h2>
+        <h2>MQTT Message: <span id="mqttMessage"></span></h2>
+    </div>
+</body>
+</html>
